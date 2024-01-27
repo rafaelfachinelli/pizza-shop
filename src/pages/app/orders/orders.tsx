@@ -6,12 +6,9 @@ import { z } from 'zod'
 
 import { getOrders } from '@/api/get-orders'
 import { Pagination } from '@/components/pagination'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -19,6 +16,7 @@ import {
 
 import { OrderTableFilters } from './order-table-filters'
 import { OrderTableRow } from './order-table-row'
+import { OrderTableSkeleton } from './order-table-skeleton'
 
 export function Orders() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -30,9 +28,9 @@ export function Orders() {
   const pageIndex = z.coerce
     .number()
     .transform((page) => page - 1)
-    .parse(searchParams.get('page') ?? '0')
+    .parse(searchParams.get('page') ?? '1')
 
-  const { data: result } = useQuery({
+  const { data: result, isLoading: isLoadingOrders } = useQuery({
     queryKey: ['orders', pageIndex, orderId, customerName, status],
     queryFn: () => getOrders({ pageIndex, orderId, customerName, status }),
   })
@@ -67,6 +65,8 @@ export function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {isLoadingOrders && <OrderTableSkeleton />}
+
                 {result &&
                   result.orders?.map((order) => (
                     <OrderTableRow key={order.orderId} order={order} />
